@@ -1,14 +1,22 @@
+*{
+  margin: 0;
+  padding: 0;
+}
 .dashboard-container {
   min-height: 100vh;
-  padding: 32px;
+  padding: 0px;
   background: #f3f4f6;
+  margin-right: 10px;
 }
-
+.dashboard-main{
+  margin-left :60px;
+}
 .dashboard-title {
   font-size: 28px;
   font-weight: 600;
   margin-bottom: 32px;
   color: #111827;
+  margin-top: 15px;
 }
 
 .card-grid {
@@ -18,7 +26,7 @@
 }
 
 .card {
-  padding: 24px;
+  padding: 34px;
   border-radius: 14px;
   color: #ffffff;
   cursor: pointer;

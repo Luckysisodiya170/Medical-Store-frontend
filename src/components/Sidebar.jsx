@@ -3,12 +3,15 @@ import React from "react";
 
 const Sidebar = ({ activeTab, setActiveTab }) => {
   const styles = {
+  
     sidebar: {
+     float:"left",
       width: "220px",
       backgroundColor: "#1e293b",
       color: "#fff",
-      padding: "20px",
+      padding: "40px",
       height: "100vh",
+      margin: "0px 10px 0px 0px",
       fontFamily: "Arial, sans-serif",
     },
     title: { fontSize: "20px", fontWeight: "600", marginBottom: "30px" },

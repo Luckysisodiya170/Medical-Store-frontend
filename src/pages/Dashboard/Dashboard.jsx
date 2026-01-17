@@ -67,13 +67,13 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard-container">
+       {/* Navbar */}
+        <Navbar onLogout={() => (window.location.href = "/")} />
       {/* Sidebar */}
-      {/* <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} /> */}
+      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
 
       <div className="dashboard-main">
-        {/* Navbar */}
-        <Navbar onLogout={() => (window.location.href = "/")} />
-
+      
         {loading && <p style={{ textAlign: "center", marginTop: "50px" }}>Loading...</p>}
 
         {!loading && summary && activeTab === "summary" && (
@@ -105,8 +105,8 @@ const Dashboard = () => {
         )}
 
         {!loading && activeTab === "users" && (
-          <div style={{ padding: "20px" }}>
-            <h2>Users Table</h2>
+          <div style={{ padding: "20px", float:"right", width:"1050px" }}>
+            <h2 style={{margin:"20px"}}>Users Table</h2>
             <DataTable
               columns={userColumns}
               data={users}
