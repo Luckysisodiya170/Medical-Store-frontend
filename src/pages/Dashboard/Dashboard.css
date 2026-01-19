@@ -1,73 +1,148 @@
-*{
-  margin: 0;
-  padding: 0;
-}
+/* ================= ROOT ================= */
 .dashboard-container {
-  min-height: 100vh;
-  padding: 0px;
-  background: #f3f4f6;
-  margin-right: 10px;
-}
-.dashboard-main{
-  margin-left :60px;
-}
-.dashboard-title {
-  font-size: 28px;
-  font-weight: 600;
-  margin-bottom: 32px;
-  color: #111827;
-  margin-top: 15px;
+  height: 100vh;
+  background: #f1f5f9;
+  overflow: hidden;
 }
 
-.card-grid {
+/* ================= LAYOUT ================= */
+.main {
+  display: flex;
+  height: calc(100vh - 60px);
+}
+
+.content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+/* ================= SUMMARY CARDS ================= */
+.cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 24px;
+  gap: 16px;
+  margin-bottom: 20px;
 }
 
 .card {
-  padding: 34px;
+  background: linear-gradient(135deg, #020617, #020617cc);
+  color: white;
+  padding: 28px;
   border-radius: 14px;
-  color: #ffffff;
   cursor: pointer;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.12);
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  animation: slideUp 0.5s ease both;
+}
+
+.card strong {
+  font-size: 22px;
 }
 
 .card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 18px 35px rgba(0, 0, 0, 0.18);
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.25);
 }
 
-.card h3 {
-  font-size: 16px;
-  margin-bottom: 10px;
-  font-weight: 500;
+/* ================= TABLE AREA ================= */
+.table-wrapper {
+  background: #fff;
+  border-radius: 14px;
+  padding: 10px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  animation: fadeIn 0.4s ease-in-out;
 }
 
-.card p {
-  font-size: 32px;
-  font-weight: 700;
+/* ================= LOADING OVERLAY ================= */
+.loader-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(241, 245, 249, 0.8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
 }
 
-.users {
-  background: linear-gradient(135deg, #2563eb, #1e40af);
+.spinner {
+  width: 54px;
+  height: 54px;
+  border: 6px solid #cbd5f5;
+  border-top: 6px solid #2563eb;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 12px;
 }
 
-.medicines {
-  background: linear-gradient(135deg, #059669, #065f46);
+.loader-overlay p {
+  font-size: 14px;
+  color: #334155;
+  animation: pulse 1.2s infinite;
 }
 
-.orders {
-  background: linear-gradient(135deg, #d97706, #92400e);
+/* ================= MODALS (Create / Edit) ================= */
+.modal-enter {
+  animation: slideUp 0.35s ease both;
 }
 
-.low-stock {
-  background: linear-gradient(135deg, #dc2626, #7f1d1d);
+/* ================= ANIMATIONS ================= */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-.loading {
-  text-align: center;
-  font-size: 18px;
-  margin-top: 100px;
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0% { opacity: 0.5; }
+  50% { opacity: 1; }
+  100% { opacity: 0.5; }
+}
+
+/* ================= MOBILE ================= */
+@media (max-width: 768px) {
+  .content {
+    padding: 12px;
+  }
+
+  .card {
+    padding: 22px;
+  }
+
+  .card strong {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .cards {
+    grid-template-columns: 1fr;
+  }
+
+  .card {
+    padding: 20px;
+  }
 }

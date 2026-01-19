@@ -1,48 +1,40 @@
-// Sidebar.jsx
-import React from "react";
-
 const Sidebar = ({ activeTab, setActiveTab }) => {
-  const styles = {
-  
-    sidebar: {
-     float:"left",
-      width: "220px",
-      backgroundColor: "#1e293b",
-      color: "#fff",
-      padding: "40px",
-      height: "100vh",
-      margin: "0px 10px 0px 0px",
-      fontFamily: "Arial, sans-serif",
-    },
-    title: { fontSize: "20px", fontWeight: "600", marginBottom: "30px" },
-    item: {
-      padding: "12px 0",
-      cursor: "pointer",
-      color: "#cbd5e1",
-      transition: "all 0.2s",
-    },
-    active: { color: "#fff", fontWeight: "600" },
-  };
-
-  const tabs = ["summary", "users", "orders", "medicines"];
+  const menu = [
+    { key: "summary", label: "Dashboard" },
+    { key: "users", label: "Users" },
+    { key: "medicines", label: "Medicines" },
+    { key: "orders", label: "Orders" },
+  ];
 
   return (
     <div style={styles.sidebar}>
-      <div style={styles.title}>Admin Panel</div>
-      {tabs.map((tab) => (
+      {menu.map((item) => (
         <div
-          key={tab}
+          key={item.key}
+          onClick={() => setActiveTab(item.key)}
           style={{
             ...styles.item,
-            ...(activeTab === tab ? styles.active : {}),
+            background: activeTab === item.key ? "#2563eb" : "transparent",
           }}
-          onClick={() => setActiveTab(tab)}
         >
-          {tab.charAt(0).toUpperCase() + tab.slice(1)}
+          {item.label}
         </div>
       ))}
     </div>
   );
+};
+
+const styles = {
+  sidebar: {
+    width: "220px",
+    background: "#020617",
+    color: "#fff",
+    paddingTop: "20px",
+  },
+  item: {
+    padding: "12px 20px",
+    cursor: "pointer",
+  },
 };
 
 export default Sidebar;

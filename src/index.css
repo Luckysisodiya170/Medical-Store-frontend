@@ -1,0 +1,15 @@
+:root {
+  --bg: #f1f5f9;
+  --card: #ffffff;
+  --text: #0f172a;
+  --border: #e5e7eb;
+  --header: #020617;
+}
+
+[data-theme="dark"] {
+  --bg: #020617;
+  --card: #020617;
+  --text: #e5e7eb;
+  --border: #1e293b;
+  --header: #020617;
+}

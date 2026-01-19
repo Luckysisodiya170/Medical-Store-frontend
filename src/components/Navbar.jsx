@@ -1,47 +1,80 @@
-// Navbar.jsx
-import React from "react";
+import { useEffect, useState } from "react";
 
-const Navbar = ({ onLogout }) => {
-  const styles = {
-    navbar: {
-      height: "60px",
-      backgroundColor: "#fff",
-      borderBottom: "1px solid #e2e8f0",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      padding: "0 20px",
-      fontFamily: "Arial, sans-serif",
-      boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-      position: "sticky",
-      top: 0,
-      zIndex: 100,
-    },
-    title: { fontSize: "22px", fontWeight: 600, color: "#1f2937" },
-    button: {
-      backgroundColor: "#dc2626",
-      color: "#fff",
-      border: "none",
-      padding: "8px 16px",
-      borderRadius: "6px",
-      cursor: "pointer",
-      transition: "background 0.2s",
-    },
-  };
+const Navbar = ({ onCreate, onLogout }) => {
+  const [dark, setDark] = useState(
+    localStorage.getItem("theme") === "dark"
+  );
+
+  useEffect(() => {
+    document.documentElement.setAttribute(
+      "data-theme",
+      dark ? "dark" : "light"
+    );
+    localStorage.setItem("theme", dark ? "dark" : "light");
+  }, [dark]);
 
   return (
     <div style={styles.navbar}>
-      <div style={styles.title}>Medical Store Admin</div>
-      <button
-        style={styles.button}
-        onClick={onLogout}
-        onMouseOver={(e) => (e.target.style.backgroundColor = "#b91c1c")}
-        onMouseOut={(e) => (e.target.style.backgroundColor = "#dc2626")}
-      >
-        Logout
-      </button>
+      <h2 style={styles.title}>💊 Medical Store Admin</h2>
+
+      <div style={styles.actions}>
+        <button onClick={onCreate} style={styles.create}>
+          + Create
+        </button>
+
+
+        <button onClick={onLogout} style={styles.logout}>
+          Logout
+        </button>
+      </div>
     </div>
   );
+};
+
+const styles = {
+  navbar: {
+    height: "60px",
+    background: "var(--header)",
+    color: "#fff",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "0 20px",
+    borderBottom: "1px solid var(--border)",
+  },
+  title: {
+    fontSize: "18px",
+    fontWeight: 600,
+  },
+  actions: {
+    display: "flex",
+    gap: "10px",
+    alignItems: "center",
+  },
+  create: {
+    background: "#2563eb",
+    color: "#fff",
+    border: "none",
+    padding: "6px 14px",
+    borderRadius: "6px",
+    cursor: "pointer",
+  },
+  mode: {
+    background: "transparent",
+    border: "1px solid #334155",
+    color: "#fff",
+    padding: "6px 10px",
+    borderRadius: "6px",
+    cursor: "pointer",
+  },
+  logout: {
+    background: "#dc2626",
+    color: "#fff",
+    border: "none",
+    padding: "6px 12px",
+    borderRadius: "6px",
+    cursor: "pointer",
+  },
 };
 
 export default Navbar;

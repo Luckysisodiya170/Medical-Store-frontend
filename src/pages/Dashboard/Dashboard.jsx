@@ -1,30 +1,41 @@
 import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 import "./Dashboard.css";
 import Navbar from "../../components/Navbar";
-import Sidebar from "../../components/Sidebar";
-import DataTable from "../../components/Datatable";
+import Datatable from "../../components/Datatable";
+import CreateForm from "../../components/CreateForm";
+import EditMedicineCard from "../../components/EditMedicineCard";
+
+const BASE = "https://medical-store-production.up.railway.app";
+const LOW_STOCK_LIMIT = 10;
 
 const Dashboard = () => {
-  const [activeTab, setActiveTab] = useState("summary");
-  const [users, setUsers] = useState([]);
-  const [summary, setSummary] = useState(null);
-  const [loading, setLoading] = useState(true);
-
   const token = localStorage.getItem("adminToken");
 
-  // Fetch dashboard summary
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+
+  /* ===================== STATE ===================== */
+  const [view, setView] = useState(null); // users | medicines | orders | low-stock
+  const [summary, setSummary] = useState(null);
+
+  const [users, setUsers] = useState([]);
+  const [medicines, setMedicines] = useState([]);
+  const [orders, setOrders] = useState([]);
+
+  const [loading, setLoading] = useState(false);
+  const [showCreate, setShowCreate] = useState(false);
+  const [editingMedicine, setEditingMedicine] = useState(null);
+
+  /* ===================== SUMMARY ===================== */
   useEffect(() => {
     const fetchSummary = async () => {
       try {
         setLoading(true);
-        const res = await fetch(
-          "https://medical-store-production.up.railway.app/api/dashboard/summary",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const res = await fetch(`${BASE}/api/dashboard/summary`, { headers });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.message);
         setSummary(data.data);
       } catch (err) {
         console.error(err);
@@ -34,22 +45,33 @@ const Dashboard = () => {
     };
 
     fetchSummary();
-  }, [token]);
+  }, []);
 
-  // Fetch users
+  /* ===================== DATA FETCH ===================== */
   useEffect(() => {
-    const fetchUsers = async () => {
+    if (!view) return;
+
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const res = await fetch(
-          "https://medical-store-production.up.railway.app/api/admin/users",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-        const data = await res.json();
-        if (!res.success) throw new Error("Failed to fetch users");
-        setUsers(data.users);
+
+        if (view === "users") {
+          const r = await fetch(`${BASE}/api/admin/users`, { headers });
+          const d = await r.json();
+          setUsers(d.users || []);
+        }
+
+        if (view === "medicines" || view === "low-stock") {
+          const r = await fetch(`${BASE}/api/medicines`, { headers });
+          const d = await r.json();
+          setMedicines(Array.isArray(d) ? d : d.data || []);
+        }
+
+        if (view === "orders") {
+          const r = await fetch(`${BASE}/api/admin/orders`, { headers });
+          const d = await r.json();
+          setOrders(d.orders || []);
+        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -57,66 +79,194 @@ const Dashboard = () => {
       }
     };
 
-    if (activeTab === "users") fetchUsers();
-  }, [activeTab, token]);
+    fetchData();
+  }, [view]);
 
-  const handleEdit = (row) => alert("Edit: " + row.name);
-  const handleDelete = (row) => alert("Delete: " + row.name);
+  /* ===================== DERIVED ===================== */
+  const lowStockMedicines = medicines.filter(
+    (m) => Number(m.stock) < LOW_STOCK_LIMIT
+  );
 
-  const userColumns = ["name", "email", "phone", "isActive", "createdAt"];
+  /* ===================== EDIT ===================== */
+  const handleEdit = async (row, payload) => {
+    // MEDICINE → OPEN UPDATE CARD
+    if ("stock" in row && !payload) {
+      setEditingMedicine(row);
+      return;
+    }
+
+    let url = "";
+    if ("status" in row) url = `${BASE}/api/admin/orders/${row.id}`;
+    if ("isActive" in row) url = `${BASE}/api/admin/users/${row.id}`;
+
+    try {
+      setLoading(true);
+      await fetch(url, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify(payload),
+      });
+      toast.success("Updated successfully");
+      setView(view);
+    } catch (err) {
+      toast.error("Update failed");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* ===================== UPDATE MEDICINE ===================== */
+  const updateMedicine = async (medicine, payload) => {
+    try {
+      setLoading(true);
+      await fetch(`${BASE}/api/medicines/${medicine.id}`, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify(payload),
+      });
+      toast.success("Medicine updated");
+      setEditingMedicine(null);
+      setView("medicines");
+    } catch (err) {
+      toast.error("Update failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* ===================== DELETE ===================== */
+  const handleDelete = async (row) => {
+    if (!window.confirm("Delete this record?")) return;
+
+    let url = "";
+    if ("isActive" in row) url = `${BASE}/api/admin/users/${row.id}`;
+    if ("stock" in row) url = `${BASE}/api/medicines/${row.id}`;
+
+    try {
+      setLoading(true);
+      await fetch(url, { method: "DELETE", headers });
+      toast.success("Deleted successfully");
+      setView(view);
+    } catch (err) {
+      toast.error("Delete failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* ===================== CREATE ===================== */
+  const handleCreate = async (type, payload) => {
+    let url = "";
+    if (type === "user") url = `${BASE}/api/admin/users`;
+    if (type === "medicine") url = `${BASE}/api/medicines`;
+    if (type === "order") url = `${BASE}/api/admin/orders`;
+
+    try {
+      setLoading(true);
+      const isFormData = payload instanceof FormData;
+
+      await fetch(url, {
+        method: "POST",
+        headers: isFormData ? { Authorization: `Bearer ${token}` } : headers,
+        body: isFormData ? payload : JSON.stringify(payload),
+      });
+
+      toast.success("Created successfully");
+      setShowCreate(false);
+      setView(type + "s");
+    } catch (err) {
+      toast.error("Create failed");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="dashboard-container">
-       {/* Navbar */}
-        <Navbar onLogout={() => (window.location.href = "/")} />
-      {/* Sidebar */}
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Navbar
+        onCreate={() => setShowCreate(true)}
+        onLogout={() => {
+          localStorage.removeItem("adminToken");
+          window.location.href = "/";
+        }}
+      />
 
-      <div className="dashboard-main">
-      
-        {loading && <p style={{ textAlign: "center", marginTop: "50px" }}>Loading...</p>}
+      <div className="main">
+        <div className="content">
 
-        {!loading && summary && activeTab === "summary" && (
-          <>
-            <h1 className="dashboard-title">Admin Dashboard</h1>
+          {/* LOADING */}
+          {loading && (
+            <div className="loader-overlay">
+              <div className="spinner"></div>
+              <p>Loading...</p>
+            </div>
+          )}
 
-            <div className="card-grid">
-              <div className="card users">
-                <h3>Total Users</h3>
-                <p>{summary.customers}</p>
+          {/* ================= SUMMARY (ALWAYS VISIBLE) ================= */}
+          {summary && (
+            <div className="cards">
+              <div onClick={() => setView("users")} className="card">
+                Users<br /><strong>{summary.customers}</strong>
               </div>
-
-              <div className="card medicines">
-                <h3>Total Medicines</h3>
-                <p>{summary.medicines}</p>
+              <div onClick={() => setView("medicines")} className="card">
+                Medicines<br /><strong>{summary.medicines}</strong>
               </div>
-
-              <div className="card orders">
-                <h3>Total Orders</h3>
-                <p>{summary.orders}</p>
+              <div onClick={() => setView("orders")} className="card">
+                Orders<br /><strong>{summary.orders}</strong>
               </div>
-
-              <div className="card low-stock">
-                <h3>Low Stock Alerts</h3>
-                <p>{summary.lowStockMedicines}</p>
+              <div onClick={() => setView("low-stock")} className="card">
+                Low Stock<br /><strong>{summary.lowStockMedicines}</strong>
               </div>
             </div>
-          </>
-        )}
+          )}
 
-        {!loading && activeTab === "users" && (
-          <div style={{ padding: "20px", float:"right", width:"1050px" }}>
-            <h2 style={{margin:"20px"}}>Users Table</h2>
-            <DataTable
-              columns={userColumns}
-              data={users}
+          {/* ================= TABLE SECTION ================= */}
+          {!loading && view === "users" && (
+            <Datatable data={users} onEdit={handleEdit} onDelete={handleDelete} />
+          )}
+
+          {!loading && view === "medicines" && (
+            <Datatable
+              data={medicines}
               onEdit={handleEdit}
               onDelete={handleDelete}
             />
-          </div>
-        )}
+          )}
 
-        {/* You can add other tabs like orders or medicines similarly */}
+          {!loading && view === "orders" && (
+            <Datatable data={orders} onEdit={handleEdit} />
+          )}
+
+          {!loading && view === "low-stock" && (
+            <>
+              <h2 style={{ color: "#b91c1c" }}>
+                ⚠ Low Stock Medicines (Below {LOW_STOCK_LIMIT})
+              </h2>
+              <Datatable
+                data={lowStockMedicines}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
+            </>
+          )}
+
+          {/* ================= MODALS ================= */}
+          {showCreate && (
+            <CreateForm
+              onClose={() => setShowCreate(false)}
+              onSubmit={handleCreate}
+            />
+          )}
+
+          {editingMedicine && (
+            <EditMedicineCard
+              medicine={editingMedicine}
+              onClose={() => setEditingMedicine(null)}
+              onUpdate={updateMedicine}
+            />
+          )}
+        </div>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
+import { toast } from "react-toastify";
 
 // const Backend_Url= process.env.Backend_Url
 
@@ -35,14 +36,14 @@ const Login = () => {
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.message || "Login failed");
-        return;
+toast.error("login failed");     
+   return;
       }
 
       // Save token (for protected routes later)
       localStorage.setItem("adminToken", data.token);
 
-      alert("Login Successful");
+toast.success("Login successful");
       console.log("Admin:", data.admin);
 
       localStorage.setItem("adminToken", data.token);
@@ -52,8 +53,7 @@ const Login = () => {
       // navigate("/admin/dashboard"); // optional
     } catch (error) {
       console.error(error);
-      alert("Server error");
-    }
+toast.error("server error");    }
   };
 
   return (
