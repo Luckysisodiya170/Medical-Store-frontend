@@ -151,36 +151,59 @@ const handleFileChange = (e) => {
   };
 
   /* ===== VALIDATION ===== */
-  const validate = () => {
-    const e = {};
+const validate = () => {
+  const e = {};
 
-if (type === "user") {
-  if (!form.name) e.name = "Name required";
-  if (!/\S+@\S+\.\S+/.test(form.email || ""))
-    e.email = "Invalid email";
-  if (!form.phone || form.phone.length !== 10)
-    e.phone = "10 digit phone required";
-  if (!form.image)
-    e.image = "Profile image required";
-}
+  /* ===== USER ===== */
+  if (type === "user") {
+    if (!form.name) e.name = "Name required";
+    if (!/\S+@\S+\.\S+/.test(form.email || ""))
+      e.email = "Invalid email";
+    if (!form.phone || form.phone.length !== 10)
+      e.phone = "10 digit phone required";
+    if (!form.image)
+      e.image = "Profile image required";
+  }
 
+  /* ===== MEDICINE ===== */
+  if (type === "medicine") {
+    if (!form.name) e.name = "Medicine name required";
 
-    if (type === "medicine") {
-      if (!form.name) e.name = "Medicine name required";
-      if (!form.description || form.description.length < 5)
-        e.description = "Min 5 chars";
-      if (Number(form.stock) < 0) e.stock = "Invalid stock";
-      if (Number(form.price) <= 0) e.price = "Invalid price";
+    if (!form.description || form.description.length < 5)
+      e.description = "Min 5 chars";
+
+    if (form.stock === "" || isNaN(form.stock))
+      e.stock = "Stock must be a number";
+    else if (Number(form.stock) < 0)
+      e.stock = "Stock cannot be negative";
+
+    if (form.price === "" || isNaN(form.price))
+      e.price = "Price must be a number";
+    else if (Number(form.price) <= 0)
+      e.price = "Price must be greater than 0";
+
+    /* MFG < EXPIRY */
+    if (form.mfg_date && form.expiry_date) {
+      const mfg = new Date(form.mfg_date);
+      const exp = new Date(form.expiry_date);
+      if (exp <= mfg)
+        e.expiry_date = "Expiry date must be after MFG date";
     }
+  }
 
-    if (type === "order") {
-      if (!form.userId) e.userId = "Select a user";
-      if (orderItems.length === 0) e.items = "Add medicines";
-    }
+  /* ===== ORDER ===== */
+  if (type === "order") {
+    if (!form.userId) e.userId = "Select a user";
+    if (orderItems.length === 0) e.items = "Add medicines";
 
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  };
+    if (!form.quantity || isNaN(form.quantity) || Number(form.quantity) <= 0)
+      e.quantity = "Quantity must be greater than 0";
+  }
+
+  setErrors(e);
+  return Object.keys(e).length === 0;
+};
+
 
   /* ===== SUBMIT ===== */
 const handleSubmit = () => {
@@ -279,21 +302,7 @@ if (type === "medicine") {
         error={errors.manufacturer}
       />
 
-      {/* CATEGORY (OPTIONAL) */}
-      <Field
-        name="category"
-        placeholder="Category (Painkiller, Antibiotic etc.)"
-        value={form.category || ""}
-        onChange={handleChange}
-      />
-
-      {/* BATCH NUMBER */}
-      <Field
-        name="batch_no"
-        placeholder="Batch Number"
-        value={form.batch_no || ""}
-        onChange={handleChange}
-      />
+      
 
       {/* MFG & EXPIRY */}
       <div style={{ display: "flex", gap: 12 }}>
